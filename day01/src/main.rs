@@ -1,6 +1,6 @@
 use anyhow::Result;
 use log::{debug, info, trace, LevelFilter};
-use std::cmp::{Ordering, Reverse};
+use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::str::FromStr;
 
@@ -26,32 +26,32 @@ impl Eq for Elf {}
 
 impl PartialOrd for Elf {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.calories.cmp(&other.calories))
+        Some(other.calories.cmp(&self.calories))
     }
 }
 
 impl Ord for Elf {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.calories.cmp(&other.calories)
+        other.calories.cmp(&self.calories)
     }
 }
 
-fn try_add_elf(elf: &mut Option<Elf>, top_elves: &mut BinaryHeap<Reverse<Elf>>, k: usize) {
+fn try_add_elf(elf: &mut Option<Elf>, top_elves: &mut BinaryHeap<Elf>, k: usize) {
     if let Some(elf) = elf.take() {
         if top_elves.len() == k {
-            let Reverse(top_elf) = top_elves.peek().unwrap();
-            if top_elf < &elf {
+            let top_elf = top_elves.peek().unwrap();
+            if top_elf > &elf {
                 debug!("Replacing {:?} with {:?}", top_elf, elf);
                 top_elves.pop();
-                top_elves.push(Reverse(elf));
+                top_elves.push(elf);
             }
         } else {
-            top_elves.push(Reverse(elf));
+            top_elves.push(elf);
         }
     }
 }
 
-fn top_k_elves(k: usize) -> Result<BinaryHeap<Reverse<Elf>>> {
+fn top_k_elves(k: usize) -> Result<BinaryHeap<Elf>> {
     let mut elves = BinaryHeap::new();
     let mut curr_elf = None;
 
@@ -84,13 +84,7 @@ fn main() -> Result<()> {
     let elves = top_k_elves(k)?;
     debug!("Top {} Elves: {:?}", k, elves);
 
-    let calories: usize = elves
-        .into_iter()
-        .map(|e| {
-            let Reverse(e) = e;
-            e.calories
-        })
-        .sum();
+    let calories: usize = elves.into_iter().map(|e| e.calories).sum();
 
     info!("Calories: {}", calories);
 
