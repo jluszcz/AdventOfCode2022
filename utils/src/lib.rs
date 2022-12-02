@@ -5,8 +5,8 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-const INPUT_PATH: &str = "input/input.txt";
-const TEST_INPUT_PATH: &str = "input/test.txt";
+const INPUT_PATH: &str = "input/input";
+const TEST_INPUT_PATH: &str = "input/example";
 
 pub fn init_logger(level: LevelFilter) -> Result<()> {
     inner_init_logger(Some(level), false)
@@ -35,7 +35,7 @@ pub fn test_input() -> Result<Vec<String>> {
 }
 
 fn read_lines(path: &'static str) -> Result<Vec<String>> {
-    let lines: Vec<_> = BufReader::new(File::open(&Path::new(path))?)
+    let lines: Vec<_> = BufReader::new(File::open(Path::new(path))?)
         .lines()
         .filter_map(|l| l.ok())
         .collect();
