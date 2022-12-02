@@ -1,17 +1,17 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use log::{debug, info, trace, LevelFilter};
-use std::cmp::Ordering;
+use std::cmp::{Ordering, Reverse};
 use std::collections::BinaryHeap;
 use std::str::FromStr;
 
 #[derive(Debug)]
 struct Elf {
-    id: u32,
-    calories: u32,
+    id: usize,
+    calories: usize,
 }
 
 impl Elf {
-    fn new(id: u32) -> Self {
+    fn new(id: usize) -> Self {
         Elf { id, calories: 0 }
     }
 }
@@ -36,7 +36,22 @@ impl Ord for Elf {
     }
 }
 
-fn load_elves() -> Result<BinaryHeap<Elf>> {
+fn try_add_elf(elf: &mut Option<Elf>, top_elves: &mut BinaryHeap<Reverse<Elf>>, k: usize) {
+    if let Some(elf) = elf.take() {
+        if top_elves.len() == k {
+            let Reverse(top_elf) = top_elves.peek().unwrap();
+            if top_elf < &elf {
+                debug!("Replacing {:?} with {:?}", top_elf, elf);
+                top_elves.pop();
+                top_elves.push(Reverse(elf));
+            }
+        } else {
+            top_elves.push(Reverse(elf));
+        }
+    }
+}
+
+fn top_k_elves(k: usize) -> Result<BinaryHeap<Reverse<Elf>>> {
     let mut elves = BinaryHeap::new();
     let mut curr_elf = None;
 
@@ -48,20 +63,15 @@ fn load_elves() -> Result<BinaryHeap<Elf>> {
             curr_elf = Some(Elf::new(id));
             id += 1;
         } else if line.is_empty() {
-            let elf = curr_elf.take().unwrap();
-            debug!("Adding {:?} to heap", elf);
-            elves.push(elf);
+            try_add_elf(&mut curr_elf, &mut elves, k);
         }
 
         if let Some(elf) = &mut curr_elf {
-            elf.calories += u32::from_str(&line)?;
+            elf.calories += usize::from_str(&line)?;
         }
     }
 
-    if let Some(elf) = curr_elf.take() {
-        debug!("Adding {:?} to heap", elf);
-        elves.push(elf);
-    }
+    try_add_elf(&mut curr_elf, &mut elves, k);
 
     Ok(elves)
 }
@@ -69,18 +79,20 @@ fn load_elves() -> Result<BinaryHeap<Elf>> {
 fn main() -> Result<()> {
     utils::init_logger(LevelFilter::Info)?;
 
-    let mut elves = load_elves()?;
-    debug!("Elves: {:?}", elves);
+    let k = 3;
 
-    let top_k = 3;
-    let mut top_k_calories = 0;
-    for _ in 0..top_k {
-        let elf = elves.pop().ok_or_else(|| anyhow!("No Elf found"))?;
-        debug!("{:?}", elf);
-        top_k_calories += elf.calories;
-    }
+    let elves = top_k_elves(k)?;
+    debug!("Top {} Elves: {:?}", k, elves);
 
-    info!("Calories: {}", top_k_calories);
+    let calories: usize = elves
+        .into_iter()
+        .map(|e| {
+            let Reverse(e) = e;
+            e.calories
+        })
+        .sum();
+
+    info!("Calories: {}", calories);
 
     Ok(())
 }
