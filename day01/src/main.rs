@@ -1,5 +1,5 @@
 use anyhow::Result;
-use log::{debug, info, trace, LevelFilter};
+use log::{debug, info, trace};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::str::FromStr;
@@ -51,12 +51,12 @@ fn try_add_elf(elf: &mut Option<Elf>, top_elves: &mut BinaryHeap<Elf>, k: usize)
     }
 }
 
-fn top_k_elves(k: usize) -> Result<BinaryHeap<Elf>> {
+fn top_k_elves(k: usize, input: &[String]) -> Result<BinaryHeap<Elf>> {
     let mut elves = BinaryHeap::new();
     let mut curr_elf = None;
 
     let mut id = 1;
-    for line in utils::input()? {
+    for line in input {
         trace!("{}", line);
 
         if curr_elf.is_none() {
@@ -77,11 +77,11 @@ fn top_k_elves(k: usize) -> Result<BinaryHeap<Elf>> {
 }
 
 fn main() -> Result<()> {
-    utils::init_logger(LevelFilter::Info)?;
+    let input = utils::input()?;
 
     let k = 3;
 
-    let elves = top_k_elves(k)?;
+    let elves = top_k_elves(k, &input)?;
     debug!("Top {} Elves: {:?}", k, elves);
 
     let calories: usize = elves.into_iter().map(|e| e.calories).sum();

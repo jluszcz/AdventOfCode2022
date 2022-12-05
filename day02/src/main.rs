@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
-use log::{debug, info, LevelFilter};
+use log::{debug, info};
 
 #[derive(Debug)]
 enum GameResult {
@@ -96,10 +96,10 @@ impl FromStr for Shape {
     }
 }
 
-fn follow_strategy_guide() -> Result<usize> {
+fn follow_strategy_guide(input: &[String]) -> Result<usize> {
     let mut score = 0;
 
-    for game in utils::input()? {
+    for game in input {
         let mut parts = game.split_ascii_whitespace();
         let opponent_play = Shape::from_str(
             parts
@@ -122,9 +122,9 @@ fn follow_strategy_guide() -> Result<usize> {
 }
 
 fn main() -> Result<()> {
-    utils::init_logger(LevelFilter::Info)?;
+    let input = utils::input()?;
 
-    let score = follow_strategy_guide()?;
+    let score = follow_strategy_guide(&input)?;
     info!("Score: {}", score);
 
     Ok(())

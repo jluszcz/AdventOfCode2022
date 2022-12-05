@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::str::FromStr;
 
 use anyhow::Result;
-use log::{info, trace, LevelFilter};
+use log::{info, trace};
 
 #[derive(Debug, Default)]
 struct Rucksack {
@@ -66,8 +66,6 @@ fn get_rucksacks(input: &[String]) -> Vec<Rucksack> {
 }
 
 fn main() -> Result<()> {
-    utils::init_logger(LevelFilter::Info)?;
-
     let rucksacks = get_rucksacks(&utils::input()?);
     assert_eq!(0, rucksacks.len() % 3,);
 
